@@ -220,7 +220,7 @@ Example:
         }
 
         if (this._cacheLoad()) {
-          this.fire('ajax-cached-data-response', {"data": _cachedData, "cache": true, "timestamp": this._cachedTime});
+          this.fire('ajax-cached-data-response', {"data": this._cachedResponse, "cache": true, "timestamp": this._cachedTime});
         } else {             
           var request = this.$.ajax.generateRequest();
           return request;
