@@ -170,7 +170,7 @@ Example:
         '_cacheInvalidateFromParameters(parameters.*)'
       ],
       // Element Lifecycle
-
+/*
       ready: function() {
         // `ready` is called after all elements have been configured, but
         // propagates bottom-up. This element's children are ready, but parents
@@ -198,7 +198,7 @@ Example:
         // Use this to clean up anything you did in `attached`.
         console.log('ajax-cached-data detached');
       },
-
+*/
       // Element Behavior
 
       /**
@@ -222,7 +222,6 @@ Example:
         if (this._cacheLoad()) {
           this.fire('ajax-cached-data-response', {"data": _cachedData, "cache": true, "timestamp": this._cachedTime});
         } else {             
-          console.log('requesting from ' + this._url);
           var request = this.$.ajax.generateRequest();
           return request;
         }
@@ -364,13 +363,11 @@ Example:
             // parse to an object so we don't change the original parameters instance with a new key
             ajaxBody = JSON.parse(jsonString);
           } catch (err) {
-            console.log("Invalid parameters JSON: " + err.message);
+            console.error("Invalid parameters JSON: " + err.message);
             ajaxBody = {};
           }
           // append API key to parameters.
           ajaxBody['apikey'] = apiKey;
-          console.log('body');
-          console.log(JSON.stringify(ajaxBody));
           return ajaxBody;
       },
       /** 
@@ -383,8 +380,6 @@ Example:
         return Date.now();
       },
       _handleResponse: function() {
-        console.log('handling response');
-        console.log(this._response);
         this._cacheSave(this._response);
         this.fire('ajax-cached-data-response', { "data": this._response, "cache": false, "timestamp": this._getTimeStamp } );
       }
