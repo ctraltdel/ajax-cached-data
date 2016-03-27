@@ -300,7 +300,7 @@ Example:
           cachedValue = window.localStorage.getItem(this._storageKey);
         }
         if (cachedValue) {
-          this._cachedResponse = cachedValue;
+          this._cachedResponse = JSON.parse(cachedValue);
           return true;
         }
         return false;
@@ -380,7 +380,14 @@ Example:
         return Date.now();
       },
       _handleResponse: function() {
-        this._cacheSave(this._response);
+        var cacheObj = {};
+        try {
+          cacheObj= JSON.stringify(this._response);
+          this._cacheSave(JSON.stringify(this._response));
+        }
+        catch(ex) {
+          console.error('Could not write invalid object to cache: ' + ex.message);
+        }
         this.fire('ajax-cached-data-response', { "data": this._response, "cache": false, "timestamp": this._getTimeStamp } );
       }
 
