@@ -329,12 +329,12 @@ Example:
       _cacheSave: function(data, responseTimestamp) {        
 
         this.clearCache();
-
+        stringData = JSON.stringify(data);
         try { 
           if (this.useSession) {
-            window.sessionStorage.setItem(this._storageKey, data);
+            window.sessionStorage.setItem(this._storageKey, stringData);
           } else {
-            window.localStorage.setItem(this._storageKey, data);
+            window.localStorage.setItem(this._storageKey, stringData);
           }
           this._cachedTime = responseTimestamp;
           this._cacheValid = true;
@@ -369,7 +369,7 @@ Example:
        */
       _getRequestBody: function(parameters, apiKey) {
         if (parameters == null) {
-            return {};
+            parameters = {};
           }
           var jsonString, ajaxBody;
           try {

@@ -89,7 +89,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var someValue = {"foo": "bar"};
           myEl._cacheSave(someValue);
           assert.equal(myEl._cacheLoad(),true);
-          assert.equal(myEl._cachedResponse, someValue);
+          assert.deepEqual(myEl._cachedResponse, someValue);
           myEl.clearCache();
         });
 
@@ -98,7 +98,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var someValue = {"foo": "bar"};
           myEl._cacheSave(someValue);
           assert.equal(myEl._cacheLoad(),true);
-          assert.equal(myEl._cachedResponse, someValue);
+          assert.deepEqual(myEl._cachedResponse, someValue);
           myEl.clearCache();
         });
 
