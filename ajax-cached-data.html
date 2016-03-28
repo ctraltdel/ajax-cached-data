@@ -324,8 +324,9 @@ Example:
       /**
        * Saves data to cache
        * @param {object} data JSON object to be saved in the cache using this._storageKey
+       * @param {number} responseTimestamp when the response was received. Saved to the _cachedTime property but passed in so the _cacheSave function can manage all the cached properties itself.
        */
-      _cacheSave: function(data) {        
+      _cacheSave: function(data, responseTimestamp) {        
 
         this.clearCache();
 
@@ -335,7 +336,7 @@ Example:
           } else {
             window.localStorage.setItem(this._storageKey, data);
           }
-          this._cachedTime = this._getTimeStamp();
+          this._cachedTime = responseTimestamp;
           this._cacheValid = true;
         }
         catch (ex) {
@@ -395,14 +396,16 @@ Example:
       },
       _handleResponse: function() {
         var cacheObj = {};
+        var responseTimestamp = this._getTimeStamp();
+
         try {
           cacheObj= JSON.stringify(this._response);
-          this._cacheSave(JSON.stringify(this._response));
+          this._cacheSave(JSON.stringify(this._response), responseTimestamp);
         }
         catch(ex) {
           console.error('Could not write invalid object to cache: ' + ex.message);
         }
-        this.fire('ajax-cached-data-response', { "data": this._response, "cache": false, "timestamp": this._getTimeStamp() } );
+        this.fire('ajax-cached-data-response', { "data": this._response, "cache": false, "timestamp": responseTimestamp } );
       }
 
       /**
