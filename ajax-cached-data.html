@@ -148,6 +148,13 @@ Example:
           notify: true
          },
         /**
+         * "Private" access to the request generated, mostly for debugging.
+         */
+        _lastRequest: {
+          type: Object,
+          notify: true            
+        }
+        /**
          * Indicates whether or not there is a valid cache response
          * set via global observer
          * always false when response is null
@@ -220,10 +227,17 @@ Example:
         }
 
         if (this._cacheLoad()) {
+          // cache hit
           this.fire('ajax-cached-data-response', {"data": this._cachedResponse, "cache": true, "timestamp": this._cachedTime});
-        } else {             
-          var request = this.$.ajax.generateRequest();
-          return request;
+          // indicate success
+          return true;
+        } 
+        else 
+        {             
+          // cache miss, fire ajax request, save request object to property.
+          this._lastRequest = this.$.ajax.generateRequest();
+          // indicate success
+          return true;        
         }
       },
 
@@ -388,7 +402,7 @@ Example:
         catch(ex) {
           console.error('Could not write invalid object to cache: ' + ex.message);
         }
-        this.fire('ajax-cached-data-response', { "data": this._response, "cache": false, "timestamp": this._getTimeStamp } );
+        this.fire('ajax-cached-data-response', { "data": this._response, "cache": false, "timestamp": this._getTimeStamp() } );
       }
 
       /**
