@@ -7,34 +7,24 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
-
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-ajax/iron-ajax.html">
-
 <dom-module id="sinon-test">
-  <template>
-    <style>
-      :host {
-        display: block;
-      }
-    </style>
-    <div>Hello from <span>{{foo}}</span></div>
-  </template>
-  <script>
-  (function() {
-    'use strict';
+    <template>
+    </template>
+    <script>
+        (function () {
+            'use strict';
 
-    Polymer({
-      is: 'sinon-test',
+            Polymer({
+                is: 'sinon-test',
 
-      properties: {
-        foo: {
-          type: String,
-          value: 'sinon-test',
-          notify: true
-        }
-      }
-    });
-  })();
-  </script>
+                properties: {
+                    url: {
+                        type: String
+                    }
+                }
+            });
+        })();
+    </script>
 </dom-module>
