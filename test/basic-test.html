@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <!--
 @license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
@@ -9,7 +9,7 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 <html>
-<head>
+  <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
 
@@ -18,116 +18,113 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <!-- Step 1: import the element to test -->
     <link rel="import" href="../ajax-cached-data.html">
-    <!--<link rel="import" href="../sinon-test.html">-->
-</head>
-<body>
+  </head>
+  <body>
 
     <!-- You can use the document as a place to set up your fixtures. -->
     <test-fixture id="ajax-cached-data-fixture">
-        <template>
-            <ajax-cached-data api-key="ThisIsMyKey" endpoint="http://localhost/api" method-url="/get/data" parameters='{"id": "123"}'></ajax-cached-data>
-        </template>
+      <template>
+        <ajax-cached-data api-key="ThisIsMyKey" endpoint="http://localhost/api" method-url="/get/data" parameters='{"id": "123"}'></ajax-cached-data>
+      </template>
     </test-fixture>
 
     <script>
-        suite('<ajax-cached-data>', function () {
+      suite('<ajax-cached-data>', function() {
 
-            var myEl;
+        var myEl;
 
-            setup(function () {
-                myEl = fixture('ajax-cached-data-fixture');
-            });
-            test('check endpoint and methodUrl property', function () {
-                assert.equal(myEl.endpoint, 'http://localhost/api');
-                assert.equal(myEl.methodUrl, '/get/data');
-            });
-            test('check computed _url property', function () {
-                // should be endpoint combined with method url
-                assert.equal(myEl._url, myEl.endpoint + myEl.methodUrl);
-            });
-            test('checek api key.', function () {
-                assert.equal(myEl.apiKey, 'ThisIsMyKey');
-            });
-
-            test('check computed property updates', function () {
-                // make sure that the computed url value updates
-                var newValue = '/get/data/customer';
-                myEl.methodUrl = newValue;
-                assert.equal(myEl._url, myEl.endpoint + newValue);
-                assert.equal(myEl._storageKey, myEl.storageKeyPrefix + 'ThisIsMyKey-get-data-customer');
-            });
-            test('check timestamp method', function () {
-                assert.equal(myEl._getTimeStamp(), Date.now());
-            });
-            test('check ajax body', function () {
-                assert.deepEqual(myEl._requestBody, { id: "123", apikey: "ThisIsMyKey" });
-            });
-            test('check ajax body from object parameters', function () {
-                var param = { id: "567", foo: "bar" };
-                myEl.parameters = param;
-                param['apikey'] = "ThisIsMyKey";
-                assert.deepEqual(myEl._requestBody, param);
-            });
-            test('check cache invalidator from endpoint', function () {
-                myEl._cacheValid = true;
-                myEl.apiKey = 'newkey';
-                assert.equal(myEl._cacheValid, false);
-                myEl._cacheValid = true;
-                myEl.methodUrl = '/new/method';
-                assert.equal(myEl._cacheValid, false);
-            });
-            test('check cache invalidate from objects', function () {
-                myEl._cacheValid = true;
-                myEl.parameters = { "foo": "bar" };
-                assert.equal(myEl._cacheValid, false);
-                myEl._cacheValid = true;
-                myEl._response = { "foo": "bar" };
-                assert.equal(myEl._cacheValid, false);
-            });
-
-            test('cache save and load session', function () {
-                myEl.useSession = true;
-                var someValue = { "foo": "bar" };
-                myEl._cacheSave(someValue);
-                assert.equal(myEl._cacheLoad(), true);
-                assert.equal(myEl._cachedResponse, someValue);
-                myEl.clearCache();
-            });
-
-            test('cache save and load localstorage', function () {
-                myEl.useSession = false;
-                var someValue = { "foo": "bar" };
-                myEl._cacheSave(someValue);
-                assert.equal(myEl._cacheLoad(), true);
-                assert.equal(myEl._cachedResponse, someValue);
-                myEl.clearCache();
-            });
-
-            //test('real broker api call', function () {
-            //    myEl.useSession = true;
-            //    myEl.apiKey = 'ThisIsMyKey';
-            //    myEl.endpoint = 'http://localhost/api';
-            //    myEl.methodUrl = '/get/data';
-            //    myEl.parameters = {};
-            //    var request = myEl.getData();
-            //    expect(myEl.loading).to.be.equal(true);
-                    
-            //    return request.completes.then(function() {
-            //        expect(myEl.loading).to.be.equal(false);
-            //        //alert("Completed");
-            //    });
-            //    myEl.addEventListener('ajax-cached-data-response', function(data, cache, timestamp) {
-            //      assert.equal('cache', 'false');
-            //      assert.equal(data.broker.id, 1075);
-            //      console.log(data);
-            //      console.log(JSON.stringify(data));
-            //      console.log('cached: ' + cache);
-            //    });
-            //    myEl.getData();
-            //});
-
+        setup(function() {
+          myEl = fixture('ajax-cached-data-fixture');
         });
+        test('check endpoint and methodUrl property', function() {
+          assert.equal(myEl.endpoint, 'http://localhost/api');
+          assert.equal(myEl.methodUrl, '/get/data');          
+        });
+        test('check computed _url property', function() {
+          // should be endpoint combined with method url
+          assert.equal(myEl._url, myEl.endpoint + myEl.methodUrl);
+        });        
+        test('checek api key.', function() {
+          assert.equal(myEl.apiKey, 'ThisIsMyKey');
+        });
+
+        test('check computed property updates', function() {
+          // make sure that the computed url value updates
+          var newValue = '/get/data/customer';
+          myEl.methodUrl = newValue;
+          assert.equal(myEl._url, myEl.endpoint + newValue);
+          assert.equal(myEl._storageKey, myEl.storageKeyPrefix + 'ThisIsMyKey-get-data-customer');
+        });
+        test('check timestamp method', function() {          
+          assert.equal(myEl._getTimeStamp(), Date.now());
+        });
+        test('check ajax body', function() {
+          assert.deepEqual(myEl._requestBody,{id:"123",apikey:"ThisIsMyKey"});
+        });
+        test('check ajax body from object parameters', function() {
+          var param = { id: "567", foo: "bar" };
+          myEl.parameters = param;
+          param['apikey'] = "ThisIsMyKey";
+          assert.deepEqual(myEl._requestBody, param);
+        });
+        test('check cache invalidator from endpoint', function() {
+          myEl._cacheValid = true;
+          myEl.apiKey = 'newkey';
+          assert.equal(myEl._cacheValid, false);
+          myEl._cacheValid = true;
+          myEl.methodUrl = '/new/method';
+          assert.equal(myEl._cacheValid, false);
+        });
+        test('check cache invalidate from objects', function() {
+          myEl._cacheValid = true;
+          myEl.parameters = {"foo": "bar"};
+          assert.equal(myEl._cacheValid, false);
+          myEl._cacheValid = true;
+          myEl._response = {"foo": "bar"};
+          assert.equal(myEl._cacheValid, false);
+        });
+
+        test('cache save and load session', function() {
+          myEl.useSession = true;
+          var someValue = {"foo": "bar"};
+          myEl._cacheSave(someValue);
+          assert.equal(myEl._cacheLoad(),true);
+          assert.deepEqual(myEl._cachedResponse, someValue);
+          myEl.clearCache();
+        });
+
+       test('cache save and load localstorage', function() {
+          myEl.useSession = false;
+          var someValue = {"foo": "bar"};
+          myEl._cacheSave(someValue);
+          assert.equal(myEl._cacheLoad(),true);
+          assert.deepEqual(myEl._cachedResponse, someValue);
+          myEl.clearCache();
+        });
+
+       test('real broker api call', function() {
+          myEl.useSession = true;
+          myEl.apiKey = 'ThisIsMyKey';
+          myEl.endpoint = 'http://localhost/api';
+          myEl.methodUrl = '/get/data';
+          myEl.parameters = {};
+          var request = myEl.getData();
+          expect(myEl.loading).to.be.equal(true);
+          return request.completes.then(function() {
+            expect(myEl.loading).to.be.equal(false);
+          });
+          myEl.addEventListener('ajax-cached-data-response', function(data, cache, timestamp) {
+            assert.equal('cache', 'false');
+            assert.equal(data.broker.id, 1075);
+            console.log(data);
+            console.log(JSON.stringify(data));
+            console.log('cached: ' + cache);
+          });
+          myEl.getData();
+       });
+
+      });
     </script>
 
-</body>
+  </body>
 </html>
