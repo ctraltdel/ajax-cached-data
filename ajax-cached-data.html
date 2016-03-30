@@ -201,7 +201,7 @@ Example:
 
         if (this._cacheLoad()) {
           // cache hit
-          this.fire('ajax-cached-data-response', {"data": this._cachedResponse, "cache": true, "timestamp": this._cachedTime});
+          this.fire('ajax-cached-data-response', {"data": this._cachedResponse.data, "cache": true, "timestamp": this._cachedResponse.timestamp });
           // indicate success
           return true;
         } 
@@ -291,7 +291,7 @@ Example:
 
         // remove old data if we are calling save.
         this.clearCache();
-        var cachedObject = { "data": data, "url": this._url, "parameters": this.parameters, "expires": this.cacheLife + responseTimestamp };
+        var cachedObject = { "data": data, "url": this._url, "parameters": this.parameters, "timestamp": responseTimestamp, "expires": this.cacheLife + responseTimestamp };
         try { 
           if (this.useSession) {
             window.sessionStorage.setItem(this._storageKey, JSON.stringify(cachedObject));
