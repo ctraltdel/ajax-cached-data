@@ -39,7 +39,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <script>
         //For sinon test
         suite('<sinon-test>', function () {
-            var ajax;
+            var objAjax;
             var request;
             var server;
             var responseHeader = {
@@ -53,7 +53,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     'GET',
                     /\/responds_to_get_with_json.*/, [
                         200,
-                        responseHeaders.json,
+                        responseHeader.json,
                         '{"success": true}'
                     ]
                 );
@@ -65,17 +65,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
             suite('when making simple GET requests for JSON', function () {
                 setup(function () {
-                    ajax = fixture('sinon-test-fixture')
+                    objAjax = fixture('sinon-test-fixture')
                 });
             });
 
-            test('has sane defaults that love you', function () {
-                req = ajax.generateRequest();
-                server.respond();
-                expect(request.response).to.be.ok;
-                expect(request.response).to.be.an('object');
-                expect(request.response.success).to.be.equal(true);
-            });
+            //if (objAjax) {
+                test('has sane defaults that love you', function () {
+                    alert(objAjax);
+                    req = objAjax.generateRequest();
+                    server.respond();
+                    expect(request.response).to.be.ok;
+                    expect(request.response).to.be.an('object');
+                    expect(request.response.success).to.be.equal(true);
+                });
+            //}
         });
 
         suite('<ajax-cached-data>', function () {
