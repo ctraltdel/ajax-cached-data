@@ -35,6 +35,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <sinon-test url="/responds_to_get_with_json"></sinon-test>
         </template>
     </test-fixture>
+    <test-fixture id="iron-ajax-only">
+        <template>
+        <iron-ajax url="/responds_to_get_with_json"></iron-ajax>
+        </template>
+    </test-fixture>
 
     <script>
         //For sinon test
@@ -53,7 +58,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     'GET',
                     /\/responds_to_get_with_json.*/, [
                         200,
-                        responseHeaders.json,
+                        responseHeader.json,
                         '{"success": true}'
                     ]
                 );
@@ -65,17 +70,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
             suite('when making simple GET requests for JSON', function () {
                 setup(function () {
-                    ajax = fixture('sinon-test-fixture')
+                    ajax = fixture('iron-ajax-only');
+                });
+                  test('has sane defaults that love you', function () {                
+                    req = ajax.generateRequest();
+                    server.respond();
+                    expect(req.response).to.be.ok;
+                    expect(req.response).to.be.an('object');
+                    expect(req.response.success).to.be.equal(true);                
                 });
             });
 
-            test('has sane defaults that love you', function () {
-                req = ajax.generateRequest();
-                server.respond();
-                expect(request.response).to.be.ok;
-                expect(request.response).to.be.an('object');
-                expect(request.response.success).to.be.equal(true);
-            });
+          
         });
 
         suite('<ajax-cached-data>', function () {
@@ -116,27 +122,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 param['apikey'] = "ThisIsMyKey";
                 assert.deepEqual(myEl._requestBody, param);
             });
-            test('check cache invalidator from endpoint', function () {
-                myEl._cacheValid = true;
-                myEl.apiKey = 'newkey';
-                assert.equal(myEl._cacheValid, false);
-                myEl._cacheValid = true;
-                myEl.methodUrl = '/new/method';
-                assert.equal(myEl._cacheValid, false);
-            });
-            test('check cache invalidate from objects', function () {
-                myEl._cacheValid = true;
-                myEl.parameters = { "foo": "bar" };
-                assert.equal(myEl._cacheValid, false);
-                myEl._cacheValid = true;
-                myEl._response = { "foo": "bar" };
-                assert.equal(myEl._cacheValid, false);
-            });
 
             test('cache save and load session', function () {
                 myEl.useSession = true;
                 var someValue = { "foo": "bar" };
-                myEl._cacheSave(someValue);
+                myEl._cacheSave(someValue, myEl._getTimeStamp());
                 assert.equal(myEl._cacheLoad(), true);
                 assert.deepEqual(myEl._cachedResponse, someValue);
                 myEl.clearCache();
@@ -145,7 +135,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             test('cache save and load localstorage', function () {
                 myEl.useSession = false;
                 var someValue = { "foo": "bar" };
-                myEl._cacheSave(someValue);
+                myEl._cacheSave(someValue, myEl._getTimeStamp());
                 assert.equal(myEl._cacheLoad(), true);
                 assert.deepEqual(myEl._cachedResponse, someValue);
                 myEl.clearCache();

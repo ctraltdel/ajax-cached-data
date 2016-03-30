@@ -114,13 +114,6 @@ Example:
           computed: '_getStorageKey(storageKeyPrefix, methodUrl, apiKey)'
         },
         /**
-         * timestamp when cache was set
-         */
-        _cachedTime: {
-          type: Number,
-          value: 0          
-        },
-        /**
          * object containing the cached response
          */
         _cachedResponse: {
@@ -155,28 +148,7 @@ Example:
           type: Object,
           notify: true            
         },
-        /**
-         * Indicates whether or not there is a valid cache response
-         * set via global observer
-         * always false when response is null
-         * changed to true when .save() on the cache.
-         * changes back to false when:
-         * - _url changes,
-         * - _storageKey change (these two cover apikey, methodurl and endpoint by computed fields)
-         * - parameters change
-         */
-        _cacheValid: {
-          type: Boolean,          
-          value: false,
-          notify: true
-        },
-
       },
-      observers: [
-        '_cacheInvalidateFromEndpoint(_url, _storageKey)',
-        '_cacheInvalidateFromResponse(_response.*)',
-        '_cacheInvalidateFromParameters(parameters.*)'
-      ],
       // Element Lifecycle
 /*
       ready: function() {
@@ -257,94 +229,84 @@ Example:
         catch (ex) {
           // Happens in Safari incognito mode,
           this.cacheErrorMessage = ex.message;
+          // fire event notifying of error so can show a user a dialog, etc, if desired.
+          this.fire('ajax-cached-data-cache-error', {"exception": ex});
           console.error( (this.useSession ? 'session' : 'local') + "Storage could not be saved. Safari incoginito mode?", ex);
         }
       },
       // private
 
       /** 
-       * Invalidates cache when any of the observed properties change
-       * We don't actually need the arguments other than to watch those properties for changes.
+       * Determine if the cached data is valid based on current object properties and expires time.
        */
-      _cacheInvalidateFromEndpoint: function(_url, _storageKey) {
-        this._cacheInvalidate();
-      },
-      /** 
-       * Invalidates cache when any of the observed properties change
-       * We don't actually need the arguments other than to watch those properties for changes.
-       */
-      _cacheInvalidateFromResponse: function(responseChangeRecord) {
-        this._cacheInvalidate();
-      },
-      /** 
-       * Invalidates cache when any of the observed properties change
-       * We don't actually need the arguments other than to watch those properties for changes.
-       */
-      _cacheInvalidateFromParameters: function(parametersChangeRecord) {
-        this._cacheInvalidate();
-      },
-      /** 
-       * Determine if the cache is expired if there is a cached time and the current time > expired
-       */
-      _cacheCheckExpired: function() {
-        if (this._cachedTime > 0 
-            && this._getTimeStamp() > (this._cachedTime + this.cacheLife) ) {
-          this._cacheInvalidate();
+      _cacheValidate: function(cachedObject) {
+        if (cachedObject && 
+            (!cachedObject.parameters || 
+              (JSON.stringify(cachedObject.parameters) == JSON.stringify(this.parameters))
+            ) &&                   
+            cachedObject.expires > this._getTimeStamp() && 
+            cachedObject.url == this._url && 
+            cachedObject.data != null
+          ) {
+          return true;  
         }
+        return false;        
       },      
-      /**
-       * Actions to take on cache invalidate, may involve deleting storage?
-       */
-      _cacheInvalidate: function() {
-        this._cacheValid  = false;
-      },
       /**
        * Loads the current _storageKey from window.*Storage as specified in useSession into this._cachedResponse
        * @return {boolean} true if load was successful.
        */
-      _cacheLoad: function() {
-        
-        // stop if cache is not valid or expired.
-        this._cacheCheckExpired();        
-        if (!this._cacheValid) { return false; }
-
-        var cachedValue;
+      _cacheLoad: function() {        
+        var cachedObject;
         if (this.useSession) { 
-          cachedValue = window.sessionStorage.getItem(this._storageKey);          
+          cachedString = window.sessionStorage.getItem(this._storageKey);          
         } else {
-          cachedValue = window.localStorage.getItem(this._storageKey);
+          cachedString = window.localStorage.getItem(this._storageKey);
         }
-        if (cachedValue) {
-          this._cachedResponse = JSON.parse(cachedValue);
+        if (cachedString) {
+          // put back in 
+          cachedObject = JSON.parse(cachedString);
+          if (!this._cacheValidate(cachedObject)) { 
+            this.clearCache();
+            return false;
+          }
+          this._cachedResponse = cachedObject.data;
           return true;
         }
         return false;
-
       },
 
       /**
        * Saves data to cache
+       * 
+       * todo: could caching be added in as a behavior?
+       * data about the cache needs to be independent of the element persistance so...
+       * structure of cached object is as follows:
+       * { "data": {data}, "url": {this._url}, "parameters": {parameters}, "expires:" {responseTimestamp + this._cacheLife} }
+       * api key changes are taken care of by using it in the storage key name.
        * @param {object} data JSON object to be saved in the cache using this._storageKey
        * @param {number} responseTimestamp when the response was received. Saved to the _cachedTime property but passed in so the _cacheSave function can manage all the cached properties itself.
        */
       _cacheSave: function(data, responseTimestamp) {        
 
+        // remove old data if we are calling save.
         this.clearCache();
-        stringData = JSON.stringify(data);
+        var cachedObject = { "data": data, "url": this._url, "parameters": this.parameters, "expires": this.cacheLife + responseTimestamp };
         try { 
           if (this.useSession) {
-            window.sessionStorage.setItem(this._storageKey, stringData);
+            window.sessionStorage.setItem(this._storageKey, JSON.stringify(cachedObject));
           } else {
-            window.localStorage.setItem(this._storageKey, stringData);
+            window.localStorage.setItem(this._storageKey, JSON.stringify(cachedObject));
           }
-          this._cachedTime = responseTimestamp;
-          this._cacheValid = true;
         }
         catch (ex) {
           // Happens in Safari incognito mode,
           this.cacheErrorMessage = ex.message;
+          this.fire('ajax-cached-data-cache-error', {"exception": ex});
           console.error(this.useSession ? "session" : "local" + "Storage could not be saved. Safari incoginito mode?", ex);
+          return false;
         }        
+        return true;
       },
       /**
        * Computed method for url property
@@ -395,6 +357,9 @@ Example:
         }
         return Date.now();
       },
+      /**
+       * Event handler for iron-ajax's response.
+       */
       _handleResponse: function() {
         var cacheObj = {};
         var responseTimestamp = this._getTimeStamp();
@@ -410,11 +375,18 @@ Example:
       }
 
       /**
-       * The `ajax-cached-data-response` event is fired whenever a response is received from the API. The resposne data is in a key called `data`.
+       * The `ajax-cached-data-response` event is fired whenever a response is received from the API. The response data is in a key called `data`.
        * 
        * @event ajax-cached-data-response
        * @detail {{data: Object, cache: Boolean, timestamp: Number}}
       */
+      /**
+       * The `ajax-cached-data-cache-error` event is fired when the catch block is hit around a save/load in cache. 
+       * This can be caused by safari running in private browsing mode or a browser that does not support local or sessionStorage apis.
+       * 
+       * @event ajax-cached-data-cache-error
+       * @detail {ex: Object} 
+       */
 
     });
   </script>
