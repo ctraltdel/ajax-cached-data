@@ -201,7 +201,7 @@ Example:
 
         if (this._cacheLoad()) {
           // cache hit
-          this.fire('ajax-cached-data-response', {"data": this._cachedResponse.data, "cache": true, "timestamp": this._cachedResponse.timestamp });
+          this.fire('ajax-cached-data-response', {"data": JSON.parse(this._cachedResponse.data), "cache": true, "timestamp": this._cachedResponse.timestamp });
           // indicate success
           return true;
         } 
@@ -270,7 +270,7 @@ Example:
             this.clearCache();
             return false;
           }
-          this._cachedResponse = cachedObject.data;
+          this._cachedResponse = cachedObject;
           return true;
         }
         return false;
