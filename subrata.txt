@@ -1,0 +1,20 @@
+﻿1. When using assert.deepEqual(myEl._cachedResponse, someValue); does the error Error: expected { Object (data, url, ...) } to deeply equal { foo: 'bar' } mean that the objects being compared are different, like {"foo": "bar"} is not equal to myEl._cachedResponse, which is actually holding cachedObject? To check I used assert.deepEqual(myEl._cachedResponse, myEl._cachedResponse); and the test passed, which means both the objects are equal while {"foo": "bar"} is not equal to myEl._cacheResponse;
+
+2. I used the following approach in _cacheLoad function:
+- Created a new property _cachedResponseValue of same type as _cachedResponse
+- Under the line this._cachedResponse = cachedObject; in _cacheLoad function, added new line this._cachedResponseValue = cachedObject;
+- Ran test and they passed
+- Then I added this._cachedResponseValue = cachedObject + "x"; and test failed as the objects being compared using deepEqual are not of similar nature
+- Finally I updated URL property of cachedObect after assigning it to _cachedResponse, i.e. like:
+
+alert(cachedObject.url);
+this._cachedResponseValue = cachedObject;
+
+//then after this
+cachedObject.url = "http://google.com"
+alert(cachedObject.url); - gives me "http://google.com"
+this._cachedResponseValue = cachedObject;
+
+Ran the test and they passed, which means they are equal as far as Keys are concerned, values not necessarily be equal.
+
+** Lines added in in ajax-cached-data.html are marked as //Subrata
