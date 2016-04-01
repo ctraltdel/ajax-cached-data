@@ -205,16 +205,18 @@ Example:
                 }
 
                 if (this._cacheLoad()) {
+                    //alert("1");
                     // cache hit
                     this.fire('ajax-cached-data-response', { "data": JSON.parse(this._cachedResponse.data), "cache": true, "timestamp": this._cachedResponse.timestamp });
                     // indicate success
                     return true;
                 }
                 else {
+                    //alert("0");
                     // cache miss, fire ajax request, save request object to property.
                     this._lastRequest = this.$.ajax.generateRequest();
                     // indicate success
-                    return true;
+                    return false;
                 }
             },
 
@@ -267,6 +269,7 @@ Example:
                 } else {
                     cachedString = window.localStorage.getItem(this._storageKey);
                 }
+                //alert(cachedString);
                 if (cachedString) {
                     // put back in
                     cachedObject = JSON.parse(cachedString);
@@ -276,8 +279,6 @@ Example:
                     }
                     this._cachedResponse = cachedObject;
                     //alert(this._cachedResponse.data.foo + " " + this._cachedResponse.url + " " + this._cachedResponse.parameters.id + " " + this._cachedResponse.timestamp);
-                    //Subrata
-                    this._cachedResponseValue = cachedObject;
                     return true;
                 }
                 return false;
@@ -295,7 +296,6 @@ Example:
              * @param {number} responseTimestamp when the response was received. Saved to the _cachedTime property but passed in so the _cacheSave function can manage all the cached properties itself.
              */
             _cacheSave: function (data, responseTimestamp) {
-
                 // remove old data if we are calling save.
                 this.clearCache();
                 var cachedObject = { "data": data, "url": this._url, "parameters": this.parameters, "timestamp": responseTimestamp, "expires": this.cacheLife + responseTimestamp };

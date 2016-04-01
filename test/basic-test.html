@@ -155,6 +155,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 assert.deepEqual(myEl.parameters, param);
             });
 
+            test('request to getData method', function () {
+                myEl.useSession = true;
+                myEl.apiKey = 'ThisIsMyKey';
+                myEl.endpoint = 'http://localhost/api';
+                myEl.methodUrl = '/get/data';
+                myEl.parameters = {};
+
+                //to make sure no previous cache exists
+                myEl.clearCache();
+                var request = myEl.getData();
+                //myEl._handleResponse();
+                //alert(request);
+
+                myEl.getData();
+            });
+
 
 
             //test('real broker api call', function() {
