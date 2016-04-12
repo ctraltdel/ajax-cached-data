@@ -16,385 +16,354 @@ Element to interact with the a json API and cache responses. Currently somewhat 
 
 Example:
 
-     <ajax-cached-data api-key="MyApiKey" endpoint="http://localhost/api" method-url="/get/data/" parameters='{"id": "123"}'></ajax-cached-data>
+   <ajax-cached-data api-key="MyApiKey" endpoint="http://localhost/api" method-url="/get/data/" parameters='{"id": "123"}'></ajax-cached-data>
 
 @demo demo/index.html
 @hero hero.svg
 -->
 
 <dom-module id="ajax-cached-data">
-    <template>
-        <iron-ajax id="ajax" url="[[_url]]" loading="{{loading}}" body="[[_requestBody]]" content-type="application/json" handle-as="json" method="post" on-response="_handleResponse" active-requests="{{_activeRequests}}" last-response="{{_response}}"></iron-ajax>
-    </template>
-    <script>
-        Polymer({
-            is: 'ajax-cached-data',
+  <template>
+    <iron-ajax id="ajax" url="[[_url]]" loading="{{loading}}" body="[[_requestBody]]" content-type="application/json" handle-as="json" method="post" on-response="_handleResponse" active-requests="{{_activeRequests}}" last-response="{{_response}}"></iron-ajax>
+  </template>
+  <script>
+    Polymer({
+      is: 'ajax-cached-data',
 
-            properties: {
-                /**
-                 * API Endpoint URL: ex http://localhost/api
-                 * do not end in /
-                 */
-                endpoint: {
-                    type: String,
-                },
-                /**
-                 * URL part after endpoint for particular method
-                 * ex: /get/user
-                 */
-                methodUrl: String,
-                /**
-                 * api key to send with request
-                 */
-                apiKey: String,
-                /**
-                 * if true will use sessionstorage, if false localstorage
-                 */
-                useSession: {
-                    type: Boolean,
-                    value: true
-                },
-                /**
-                 * time for cache to expire in milliseconds (seconds * 1000)
-                 * set to 0 if you do not want to cache responses
-                 * default is 10 minutes
-                 */
-                cacheLife: {
-                    type: Number,
-                    value: 600000
-                },
-                /**
-                 * Json object containing all the api parameters needed (but not api key)
-                 */
-                parameters: {
-                    type: Object,
-                    value: {}
-                },
-                /**
-                 * If true then multiple iron-ajax requests will be sent. Otherwise it will check for an inprogress request and stop.
-                 */
-                allowMultipleRequests: {
-                    type: Boolean,
-                    value: false
-                },
-                /**
-                 * Mirrors loading from iron-ajax
-                 */
-                loading: {
-                    type: Boolean,
-                    notify: true
-                },
-                /**
-                 * Error messages from caching subsystem
-                 */
-                cacheErrorMessage: {
-                    type: String,
-                    notify: true
-                },
-                /**
-                 * Prefix for all session or local storage keys. Default is element name ajax-cached-data
-                 */
-                storageKeyPrefix: {
-                    type: String,
-                    value: 'ajax-cached-data-'
-                },
-                // private
-                /**
-                 * Computed url which combines endpoint and methodUrl
-                 */
-                _url: {
-                    type: String,
-                    computed: '_getUrl(endpoint, methodUrl)'
-                },
-                /**
-                 * identifier string for storage key based off the method url and the api key
-                 */
-                _storageKey: {
-                    type: String,
-                    computed: '_getStorageKey(storageKeyPrefix, methodUrl, apiKey)'
-                },
-                /**
-                 * object containing the cached response
-                 */
-                _cachedResponse: {
-                    type: Object,
-                    notify: true
-                },
-                //Subrata
-                _cachedResponseValue: {
-                    type: Object,
-                    notify: true
-                },
-                /**
-                 * json body of ajax request. Generated from api key plus the parameters provided
-                 */
-                _requestBody: {
-                    type: Object,
-                    computed: '_getRequestBody(parameters, apiKey)'
-                },
-                /**
-                 * access the active-requests property of the local iron-ajax element
-                 */
-                _activeRequests: {
-                    type: Number,
-                    notify: true
-                },
-                /**
-                 * Mirrors response from iron-ajax
-                 */
-                _response: {
-                    type: Object,
-                    notify: true
-                },
-                /**
-                 * "Private" access to the request generated, mostly for debugging.
-                 */
-                _lastRequest: {
-                    type: Object,
-                    notify: true
-                },
-            },
-            // Element Lifecycle
-            /*
-                  ready: function() {
-                    // `ready` is called after all elements have been configured, but
-                    // propagates bottom-up. This element's children are ready, but parents
-                    // are not.
-                    //
-                    // This is the point where you should make modifications to the DOM (when
-                    // necessary), or kick off any processes the element wants to perform.
-                    console.log('ajax-cached-data ready');
-                  },
+      properties: {
+        /**
+         * API Endpoint URL: ex http://localhost/api
+         * do not end in /
+         */
+        endpoint: {
+          type: String,
+        },
+        /**
+         * URL part after endpoint for particular method
+         * ex: /get/user
+         */
+        methodUrl: String,
+        /**
+         * api key to send with request
+         */
+        apiKey: String,
+        /**
+         * if true will use sessionstorage, if false localstorage
+         */
+        useSession: {
+          type: Boolean,
+          value: true
+        },
+        /**
+         * time for cache to expire in milliseconds (seconds * 1000)
+         * set to 0 if you do not want to cache responses
+         * default is 10 minutes
+         */
+        cacheLife: {
+          type: Number,
+          value: 600000
+        },
+        /**
+         * Json object containing all the api parameters needed (but not api key)
+         */
+        parameters: {
+          type: Object,
+          value: {}
+        },
+        /**
+         * If true then multiple iron-ajax requests will be sent. Otherwise it will check for an inprogress request and stop.
+         */
+        allowMultipleRequests: {
+          type: Boolean,
+          value: false
+        },
+        /**
+         * Mirrors loading from iron-ajax
+         */
+        loading: {
+          type: Boolean,
+          notify: true
+        },
+        /**
+         * Error messages from caching subsystem
+         */
+        cacheErrorMessage: {
+          type: String,
+          notify: true
+        },
+        /**
+         * Prefix for all session or local storage keys. Default is element name ajax-cached-data
+         */
+        storageKeyPrefix: {
+          type: String,
+          value: 'ajax-cached-data-'
+        },
+        // private
+        /**
+         * Computed url which combines endpoint and methodUrl
+         */
+        _url: {
+          type: String,
+          computed: '_getUrl(endpoint, methodUrl)'
+        },
+        /**
+         * identifier string for storage key based off the method url and the api key
+         */
+        _storageKey: {
+          type: String,
+          computed: '_getStorageKey(storageKeyPrefix, methodUrl, apiKey)'
+        },
+        /**
+         * object containing the cached response
+         */
+        _cachedResponse: {
+          type: Object,
+          notify: true
+        },
+        //Subrata
+        _cachedResponseValue: {
+          type: Object,
+          notify: true
+        },
+        /**
+         * json body of ajax request. Generated from api key plus the parameters provided
+         */
+        _requestBody: {
+          type: Object,
+          computed: '_getRequestBody(parameters, apiKey)'
+        },
+        /**
+         * access the active-requests property of the local iron-ajax element
+         */
+        _activeRequests: {
+          type: Number,
+          notify: true
+        },
+        /**
+         * Mirrors response from iron-ajax
+         */
+        _response: {
+          type: Object,
+          notify: true
+        },
+        /**
+         * "Private" access to the request generated, mostly for debugging.
+         */
+        _lastRequest: {
+          type: Object,
+          notify: true
+        },
+      },
+      // Element Behavior
 
-                  attached: function() {
-                    // `attached` fires once the element and its parents have been inserted
-                    // into a document.
-                    //
-                    // This is a good place to perform any work related to your element's
-                    // visual state or active behavior (measuring sizes, beginning animations,
-                    // loading resources, etc).
-                    console.log('ajax-cached-data attached');
-                  },
+      /**
+       * Makes api request. Fires response event and passes last-response to that.
+       * @return {boolean} True if ran successfully, false if request not made.
+       */
+      getData: function () {
+        // reject multiple requests based on property
+        if (!this.allowMultipleRequests && this._activeRequests > 0) {
+          return false;
+        }
+        if (!this.apiKey) {
+          console.error('API key required for to make API request.');
+          return false;
+        }
+        if (!this._url) {
+          console.error('API call attempted without endpoint url and method.')
+          return false;
+        }
 
-                  detached: function() {
-                    // The analog to `attached`, `detached` fires when the element has been
-                    // removed from a document.
-                    //
-                    // Use this to clean up anything you did in `attached`.
-                    console.log('ajax-cached-data detached');
-                  },
-            */
-            // Element Behavior
+        if (this._cacheLoad()) {
+          // cache hit
+          this.fire('ajax-cached-data-response', { "data": JSON.parse(this._cachedResponse.data), "cache": true, "timestamp": this._cachedResponse.timestamp });
+          // indicate success
+          return true;
+        }
+        else {
+          // cache miss, fire ajax request, save request object to property.
+          this._lastRequest = this.$.ajax.generateRequest();
+          // indicate success
+          return true;
+        }
+      },
 
-            /**
-             * Makes api request. Fires response event and passes last-response to that.
-             * @return {boolean} True if ran successfully, false if request not made.
-             */
-            getData: function () {
-                // reject multiple requests based on property
-                if (!this.allowMultipleRequests && this._activeRequests > 0) {
-                    return false;
-                }
-                if (!this.apiKey) {
-                    console.error('API key required for to make API request.');
-                    return false;
-                }
-                if (!this._url) {
-                    console.error('API call attempted without endpoint url and method.')
-                    return false;
-                }
+      /**
+       * Clears any cached responses.
+       */
+      clearCache: function () {
+        try {
+          if (this.useSession) {
+            window.sessionStorage.removeItem(this._storageKey);
+          }
+          else {
+            window.localStorage.removeItem(this._storageKey);
+          }                    
+        }
+        catch (ex) {
+          // Happens in Safari incognito mode,
+          this.cacheErrorMessage = ex.message;
+          // fire event notifying of error so can show a user a dialog, etc, if desired.
+          this.fire('ajax-cached-data-cache-error', { "exception": ex });
+          console.error((this.useSession ? 'session' : 'local') + "Storage could not be saved. Safari incoginito mode?", ex);
+        }
+      },
+      // private methods
 
-                if (this._cacheLoad()) {
-                    //alert("1");
-                    // cache hit
-                    this.fire('ajax-cached-data-response', { "data": JSON.parse(this._cachedResponse.data), "cache": true, "timestamp": this._cachedResponse.timestamp });
-                    // indicate success
-                    return true;
-                }
-                else {
-                    //alert("0");
-                    // cache miss, fire ajax request, save request object to property.
-                    this._lastRequest = this.$.ajax.generateRequest();
-                    // indicate success
-                    return false;
-                }
-            },
+      /**
+       * Determine if the cached data is valid based on current object properties and expires time.
+       */
+      _cacheValidate: function (cachedObject) {
+        if (cachedObject &&
+          (!cachedObject.parameters ||
+            (JSON.stringify(cachedObject.parameters) == JSON.stringify(this.parameters))
+          ) &&
+          cachedObject.expires > this._getTimeStamp() &&
+          cachedObject.url == this._url &&
+          cachedObject.data != null
+          ) {
+          return true;
+        }
+        return false;
+      },
+      /**
+       * Loads the current _storageKey from window.*Storage as specified in useSession into this._cachedResponse
+       * @return {boolean} true if load was successful.
+       */
+      _cacheLoad: function () {
+        var cachedObject;
+        if (this.useSession) {
+          cachedString = window.sessionStorage.getItem(this._storageKey);
+        } else {
+          cachedString = window.localStorage.getItem(this._storageKey);
+        }
+        if (cachedString) {
+          // deserialize cache data
+          cachedObject = JSON.parse(cachedString);
+          // check that cache data is valid against the element's current property states
+          if (!this._cacheValidate(cachedObject)) {
+            // dump cache and return false if not valid - example the parameters changed.
+            this.clearCache();
+            return false;
+          }
+          // put json object into _cachedResponse property
+          this._cachedResponse = cachedObject;
+          return true;
+        }
+        return false;
+      },
 
-            /**
-             * Clears any cached responses.
-             */
-            clearCache: function () {
-                try {
-                    if (this.useSession) {
-                        window.sessionStorage.removeItem(this._storageKey);
-                    }
-                    else {
-                        window.localStorage.removeItem(this._storageKey);
-                    }
-                }
-                catch (ex) {
-                    // Happens in Safari incognito mode,
-                    this.cacheErrorMessage = ex.message;
-                    // fire event notifying of error so can show a user a dialog, etc, if desired.
-                    this.fire('ajax-cached-data-cache-error', { "exception": ex });
-                    console.error((this.useSession ? 'session' : 'local') + "Storage could not be saved. Safari incoginito mode?", ex);
-                }
-            },
-            // private
+      /**
+       * Saves data to cache
+       *
+       * todo: could caching be added in as a behavior?
+       * data about the cache needs to be independent of the element persistance so...
+       * structure of cached object is as follows:
+       * { "data": {data}, "url": {this._url}, "parameters": {parameters}, "expires:" {responseTimestamp + this._cacheLife} }
+       * api key changes are taken care of by using it in the storage key name.
+       * @param {object} data JSON object to be saved in the cache using this._storageKey
+       * @param {number} responseTimestamp when the response was received. Saved to the _cachedTime property but passed in so the _cacheSave function can manage all the cached properties itself.
+       */
+      _cacheSave: function (data, responseTimestamp) {
+        // remove old data if we are calling save.
+        this.clearCache();
+        var cachedObject = { "data": data, "url": this._url, "parameters": this.parameters, "timestamp": responseTimestamp, "expires": this.cacheLife + responseTimestamp };
+        try {
+          if (this.useSession) {
+            window.sessionStorage.setItem(this._storageKey, JSON.stringify(cachedObject));
+          } else {
+            window.localStorage.setItem(this._storageKey, JSON.stringify(cachedObject));
+          }
+        }
+        catch (ex) {
+          // Happens in Safari incognito mode,
+          this.cacheErrorMessage = ex.message;
+          this.fire('ajax-cached-data-cache-error', { "exception": ex });
+          console.error(this.useSession ? "session" : "local" + "Storage could not be saved. Safari incoginito mode?", ex);
+          return false;
+        }
+        return true;
+      },
+      /**
+       * Computed method for url property
+       * @param {string} this.endpoint's value
+       * @param {string} this.methodUrl's value
+       * @return {string} url that can pass to the internal iron-ajax
+       */
+      _getUrl: function (endpoint, methodUrl) {
+        return endpoint + methodUrl;
+      },
 
-            /**
-             * Determine if the cached data is valid based on current object properties and expires time.
-             */
-            _cacheValidate: function (cachedObject) {
-                if (cachedObject &&
-                    (!cachedObject.parameters ||
-                      (JSON.stringify(cachedObject.parameters) == JSON.stringify(this.parameters))
-                    ) &&
-                    cachedObject.expires > this._getTimeStamp() &&
-                    cachedObject.url == this._url &&
-                    cachedObject.data != null
-                  ) {
-                    return true;
-                }
-                return false;
-            },
-            /**
-             * Loads the current _storageKey from window.*Storage as specified in useSession into this._cachedResponse
-             * @return {boolean} true if load was successful.
-             */
-            _cacheLoad: function () {
-                var cachedObject;
-                if (this.useSession) {
-                    cachedString = window.sessionStorage.getItem(this._storageKey);
-                } else {
-                    cachedString = window.localStorage.getItem(this._storageKey);
-                }
-                //alert(cachedString);
-                if (cachedString) {
-                    // put back in
-                    cachedObject = JSON.parse(cachedString);
-                    if (!this._cacheValidate(cachedObject)) {
-                        this.clearCache();
-                        return false;
-                    }
-                    this._cachedResponse = cachedObject;
-                    //alert(this._cachedResponse.data.foo + " " + this._cachedResponse.url + " " + this._cachedResponse.parameters.id + " " + this._cachedResponse.timestamp);
-                    return true;
-                }
-                return false;
-            },
+      /**
+       * Generates a string identifier for the storage key
+       * changes / in method url to -
+       * if you change method urls then it will cache with different keys - so you *could* use this element for multiple methods if you are brave.
+       */
+      _getStorageKey: function (storageKeyPrefix, methodUrl, apiKey) {
+        return storageKeyPrefix + apiKey + methodUrl.replace(/\//g, "-");
+      },
 
-            /**
-             * Saves data to cache
-             *
-             * todo: could caching be added in as a behavior?
-             * data about the cache needs to be independent of the element persistance so...
-             * structure of cached object is as follows:
-             * { "data": {data}, "url": {this._url}, "parameters": {parameters}, "expires:" {responseTimestamp + this._cacheLife} }
-             * api key changes are taken care of by using it in the storage key name.
-             * @param {object} data JSON object to be saved in the cache using this._storageKey
-             * @param {number} responseTimestamp when the response was received. Saved to the _cachedTime property but passed in so the _cacheSave function can manage all the cached properties itself.
-             */
-            _cacheSave: function (data, responseTimestamp) {
-                // remove old data if we are calling save.
-                this.clearCache();
-                var cachedObject = { "data": data, "url": this._url, "parameters": this.parameters, "timestamp": responseTimestamp, "expires": this.cacheLife + responseTimestamp };
-                try {
-                    if (this.useSession) {
-                        window.sessionStorage.setItem(this._storageKey, JSON.stringify(cachedObject));
-                    } else {
-                        window.localStorage.setItem(this._storageKey, JSON.stringify(cachedObject));
-                    }
-                }
-                catch (ex) {
-                    // Happens in Safari incognito mode,
-                    this.cacheErrorMessage = ex.message;
-                    this.fire('ajax-cached-data-cache-error', { "exception": ex });
-                    console.error(this.useSession ? "session" : "local" + "Storage could not be saved. Safari incoginito mode?", ex);
-                    return false;
-                }
-                return true;
-            },
-            /**
-             * Computed method for url property
-             * @param {string} this.endpoint's value
-             * @param {string} this.methodUrl's value
-             * @return {string} url that can pass to the internal iron-ajax
-             */
-            _getUrl: function (endpoint, methodUrl) {
-                return endpoint + methodUrl;
-            },
+      /**
+       * Combines the parametes the the supplied api key
+       */
+      _getRequestBody: function (parameters, apiKey) {
+        if (parameters == null) {
+          parameters = {};
+        }
+        var jsonString, ajaxBody;
+        try {
+          // if params is a string leave it alone otherwise stringify it
+          jsonString = typeof parameters == "string" ? parameters : JSON.stringify(parameters);
+          // parse to an object so we don't change the original parameters instance with a new key
+          ajaxBody = JSON.parse(jsonString);
+        } catch (err) {
+          console.error("Invalid parameters JSON: " + err.message);
+          ajaxBody = {};
+        }
+        // append API key to parameters.
+        ajaxBody['apikey'] = apiKey;
+        return ajaxBody;
+      },
+      /**
+       * Gets timestamp. compatible if browsers do not support Date.now()
+       */
+      _getTimeStamp: function () {
+        if (!Date.now) {
+          Date.now = function () { return new Date().getTime(); }
+        }
+        return Date.now();
+      },
+      /**
+       * Event handler for iron-ajax's response.
+       */
+      _handleResponse: function () {
+        var cacheObj = {};
+        var responseTimestamp = this._getTimeStamp();
 
-            /**
-             * Generates a string identifier for the storage key
-             * changes / in method url to -
-             * if you change method urls then it will cache with different keys - so you *could* use this element for multiple methods if you are brave.
-             */
-            _getStorageKey: function (storageKeyPrefix, methodUrl, apiKey) {
-                return storageKeyPrefix + apiKey + methodUrl.replace(/\//g, "-");
-            },
+        try {
+          cacheObj = JSON.stringify(this._response);
+          this._cacheSave(JSON.stringify(this._response), responseTimestamp);
+        }
+        catch (ex) {
+          console.error('Could not write invalid object to cache: ' + ex.message);
+        }
+        this.fire('ajax-cached-data-response', { "data": this._response, "cache": false, "timestamp": responseTimestamp });
+      }
+      // event documentation
+      /**
+       * The `ajax-cached-data-response` event is fired whenever a response is received from the API. The response data is in a key called `data`.
+       *
+       * @event ajax-cached-data-response
+       * @detail {{data: Object, cache: Boolean, timestamp: Number}}
+      */
+      /**
+       * The `ajax-cached-data-cache-error` event is fired when the catch block is hit around a save/load in cache.
+       * This can be caused by safari running in private browsing mode or a browser that does not support local or sessionStorage apis.
+       *
+       * @event ajax-cached-data-cache-error
+       * @detail {ex: Object}
+       */
 
-            /**
-             * Combines the parametes the the supplied api key
-             */
-            _getRequestBody: function (parameters, apiKey) {
-                if (parameters == null) {
-                    parameters = {};
-                }
-                var jsonString, ajaxBody;
-                try {
-                    // if params is a string leave it alone otherwise stringify it
-                    jsonString = typeof parameters == "string" ? parameters : JSON.stringify(parameters);
-                    // parse to an object so we don't change the original parameters instance with a new key
-                    ajaxBody = JSON.parse(jsonString);
-                } catch (err) {
-                    console.error("Invalid parameters JSON: " + err.message);
-                    ajaxBody = {};
-                }
-                // append API key to parameters.
-                ajaxBody['apikey'] = apiKey;
-                return ajaxBody;
-            },
-            /**
-             * Gets timestamp. compatible if browsers do not support Date.now()
-             */
-            _getTimeStamp: function () {
-                if (!Date.now) {
-                    Date.now = function () { return new Date().getTime(); }
-                }
-                return Date.now();
-            },
-            /**
-             * Event handler for iron-ajax's response.
-             */
-            _handleResponse: function () {
-                var cacheObj = {};
-                var responseTimestamp = this._getTimeStamp();
-
-                try {
-                    cacheObj = JSON.stringify(this._response);
-                    this._cacheSave(JSON.stringify(this._response), responseTimestamp);
-                }
-                catch (ex) {
-                    console.error('Could not write invalid object to cache: ' + ex.message);
-                }
-                this.fire('ajax-cached-data-response', { "data": this._response, "cache": false, "timestamp": responseTimestamp });
-            }
-
-            /**
-             * The `ajax-cached-data-response` event is fired whenever a response is received from the API. The response data is in a key called `data`.
-             *
-             * @event ajax-cached-data-response
-             * @detail {{data: Object, cache: Boolean, timestamp: Number}}
-            */
-            /**
-             * The `ajax-cached-data-cache-error` event is fired when the catch block is hit around a save/load in cache.
-             * This can be caused by safari running in private browsing mode or a browser that does not support local or sessionStorage apis.
-             *
-             * @event ajax-cached-data-cache-error
-             * @detail {ex: Object}
-             */
-
-        });
-    </script>
+    });
+  </script>
 </dom-module>
